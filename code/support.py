@@ -39,3 +39,15 @@ class Timer:
       current_time = pygame.time.get_ticks()
       if current_time - self.action_time >= self.action_duration:
         self.acting = False
+
+def get_camera_offset(display_surface, player_rect):
+  # get camera offset
+  half_width = display_surface.get_size()[0]//2
+  half_height = display_surface.get_size()[1]//2
+  offset = pygame.math.Vector2(100,300)
+
+  offset.x = player_rect.centerx - half_width
+  offset.y = player_rect.centery - half_height
+  offset_pos = - pygame.math.Vector2(0,40) - offset
+
+  return offset_pos

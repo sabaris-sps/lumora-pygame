@@ -155,6 +155,8 @@ class Level:
     if self.game_paused:
       self.upgrade.display()
     else:
+      if self.current_attack:
+        self.current_attack.move(self.player)
       self.visible_sprites.update()
       self.visible_sprites.enemy_update(self.player)
       self.player_attack_logic()

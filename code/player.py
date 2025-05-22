@@ -68,25 +68,47 @@ class Player(Entity):
 
   def input(self):
     keys = pygame.key.get_pressed()
+    mouse_clicks = pygame.mouse.get_pressed()
 
-    # movement input
-    if keys[pygame.K_UP]:
-      self.direction.y=-1
-      self.status = 'up'
-    elif keys[pygame.K_DOWN]:
-      self.direction.y=1
-      self.status = 'down'
-    else:
-      self.direction.y=0
+    # # movement input
+    # if keys[pygame.K_UP]:
+    #   self.direction.y=-1
+    #   self.status = 'up'
+    # elif keys[pygame.K_DOWN]:
+    #   self.direction.y=1
+    #   self.status = 'down'
+    # else:
+    #   self.direction.y=0
 
-    if keys[pygame.K_LEFT]:
-      self.direction.x=-1
-      self.status = 'left'
-    elif keys[pygame.K_RIGHT]:
-      self.direction.x=1
-      self.status = 'right'
+    # if keys[pygame.K_LEFT]:
+    #   self.direction.x=-1
+    #   self.status = 'left'
+    # elif keys[pygame.K_RIGHT]:
+    #   self.direction.x=1
+    #   self.status = 'right'
+    # else:
+    #   self.direction.x=0
+
+    if mouse_clicks[0]: # mouse button down
+      mouse_vec = pygame.math.Vector2(pygame.mouse.get_pos()) - get_camera_offset(pygame.display.get_surface(), self.rect)
+      player_vec = pygame.math.Vector2(self.rect.center)
+      distance = (mouse_vec - player_vec).magnitude()
+      if distance > 0:
+        self.direction = (mouse_vec-player_vec).normalize()
+      else:
+        self.direction = pygame.math.Vector2()
+      if abs(self.direction.x) > abs(self.direction.y):
+        if self.direction.x > 0:
+          self.status = 'right'
+        else:
+          self.status = 'left'
+      else:
+        if self.direction.y > 0:
+          self.status = 'down'
+        else:
+          self.status = 'up'
     else:
-      self.direction.x=0
+      self.direction = pygame.math.Vector2()
 
     # attack input
     if keys[pygame.K_SPACE] and not self.attacking:
@@ -96,7 +118,7 @@ class Player(Entity):
       self.weapon_attack_sound.play()
 
     # magic input
-    if keys[pygame.K_RCTRL] and not self.attacking:
+    if keys[pygame.K_LCTRL] and not self.attacking:
       self.attacking = True
       self.attack_time = pygame.time.get_ticks()
       style = self.magic
@@ -136,7 +158,6 @@ class Player(Entity):
       
       self.inventory['trees'] -= 1
 
-
   def get_status(self):
 
     # idle status
@@ -145,8 +166,6 @@ class Player(Entity):
         self.status += '_idle'
 
     if self.attacking:
-      self.direction.x = 0
-      self.direction.y = 0
       if not 'attack' in self.status:
         if 'idle' in self.status:
           self.status = self.status.replace('idle', 'attack')
