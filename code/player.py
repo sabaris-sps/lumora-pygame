@@ -2,9 +2,10 @@ import pygame
 from settings import *
 from support import *
 from entity import Entity
+from tile import Tree
 
 class Player(Entity):
-  def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic):
+  def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, create_tree):
     super().__init__(groups)
     self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
     self.rect = self.image.get_rect(topleft = pos)
@@ -26,17 +27,13 @@ class Player(Entity):
     self.destroy_attack = destroy_attack
     self.weapon_index = 0
     self.weapon = list(weapon_data.keys())[self.weapon_index]
-    self.can_switch_weapon = True
-    self.weapon_switch_time = None
-    self.weapon_switch_cooldown = 200
+    self.weapon_switch_timer = Timer(200)
 
     # magic
     self.create_magic = create_magic
     self.magic_index = 0
     self.magic = list(magic_data.keys())[self.magic_index]
-    self.can_switch_magic = True
-    self.magic_switch_time = None
-    self.magic_switch_cooldown = 200
+    self.magic_switch_timer = Timer(200)
 
     # stats
     self.stats = {'health': 100,'energy':60,'attack': 10,'magic': 4,'speed': 5}
@@ -48,13 +45,16 @@ class Player(Entity):
     self.speed = self.stats['speed']
 
     # damage timer
-    self.vulnerable = True
-    self.hurt_time = None
-    self.invincibility_duration = 500
+    self.invincibility_timer = Timer(500)
 
     # import a sound
     self.weapon_attack_sound = pygame.mixer.Sound('../audio/sword.wav')
     self.weapon_attack_sound.set_volume(0.4)
+
+    # inventory
+    self.inventory = {'trees': 0}
+    self.tree_place_timer = Timer(500)
+    self.create_tree = create_tree
 
   def import_player_assets(self):
     character_path = '../graphics/player'
@@ -67,61 +67,75 @@ class Player(Entity):
       self.animations[animation] = import_folder(full_path)
 
   def input(self):
-    if not self.attacking:
-      keys = pygame.key.get_pressed()
+    keys = pygame.key.get_pressed()
 
-      # movement input
-      if keys[pygame.K_UP]:
-        self.direction.y=-1
-        self.status = 'up'
-      elif keys[pygame.K_DOWN]:
-        self.direction.y=1
-        self.status = 'down'
+    # movement input
+    if keys[pygame.K_UP]:
+      self.direction.y=-1
+      self.status = 'up'
+    elif keys[pygame.K_DOWN]:
+      self.direction.y=1
+      self.status = 'down'
+    else:
+      self.direction.y=0
+
+    if keys[pygame.K_LEFT]:
+      self.direction.x=-1
+      self.status = 'left'
+    elif keys[pygame.K_RIGHT]:
+      self.direction.x=1
+      self.status = 'right'
+    else:
+      self.direction.x=0
+
+    # attack input
+    if keys[pygame.K_SPACE] and not self.attacking:
+      self.attacking = True
+      self.attack_time = pygame.time.get_ticks()
+      self.create_attack()
+      self.weapon_attack_sound.play()
+
+    # magic input
+    if keys[pygame.K_RCTRL] and not self.attacking:
+      self.attacking = True
+      self.attack_time = pygame.time.get_ticks()
+      style = self.magic
+      strength = magic_data[self.magic]['strength'] + self.stats['magic']
+      cost = magic_data[self.magic]['cost']
+      self.create_magic(style, strength, cost)
+
+    if keys[pygame.K_q] and self.weapon_switch_timer.can_act():
+      self.weapon_switch_timer.action_init()
+      if self.weapon_index < len(weapon_data.keys()) - 1:
+        self.weapon_index += 1
       else:
-        self.direction.y=0
+        self.weapon_index = 0
+      self.weapon = list(weapon_data.keys())[self.weapon_index]
 
-      if keys[pygame.K_LEFT]:
-        self.direction.x=-1
-        self.status = 'left'
-      elif keys[pygame.K_RIGHT]:
-        self.direction.x=1
-        self.status = 'right'
+    if keys[pygame.K_e] and self.magic_switch_timer.can_act():
+      self.magic_switch_timer.action_init()
+      if self.magic_index < len(magic_data.keys()) - 1:
+        self.magic_index += 1
       else:
-        self.direction.x=0
+        self.magic_index = 0
+      self.magic = list(magic_data.keys())[self.magic_index]
 
-      # attack input
-      if keys[pygame.K_SPACE] and not self.attacking:
-        self.attacking = True
-        self.attack_time = pygame.time.get_ticks()
-        self.create_attack()
-        self.weapon_attack_sound.play()
+    # tree placing input
+    if keys[pygame.K_t] and self.tree_place_timer.can_act() and self.inventory['trees']>0:
+      self.tree_place_timer.action_init()
 
-      # magic input
-      if keys[pygame.K_RCTRL] and not self.attacking:
-        self.attacking = True
-        self.attack_time = pygame.time.get_ticks()
-        style = self.magic
-        strength = magic_data[self.magic]['strength'] + self.stats['magic']
-        cost = magic_data[self.magic]['cost']
-        self.create_magic(style, strength, cost)
+      # place the tree
+      if self.status.split('_')[0] == 'right':
+        self.create_tree(self.rect.topright, 4)
+      if self.status.split('_')[0] == 'left':
+        self.create_tree(self.rect.topleft + pygame.math.Vector2(-2*TILESIZE, 0), 4)
+      if self.status.split('_')[0] == 'up':
+        self.create_tree(self.rect.topleft + pygame.math.Vector2(0, -TILESIZE//2), 4)
+      if self.status.split('_')[0] == 'down':
+        self.create_tree(self.rect.bottomleft + pygame.math.Vector2(0, TILESIZE//2), 4)
+      
+      self.inventory['trees'] -= 1
 
-      if keys[pygame.K_q] and self.can_switch_weapon:
-        self.can_switch_weapon = False
-        self.weapon_switch_time = pygame.time.get_ticks()
-        if self.weapon_index < len(weapon_data.keys()) - 1:
-          self.weapon_index += 1
-        else:
-          self.weapon_index = 0
-        self.weapon = list(weapon_data.keys())[self.weapon_index]
-
-      if keys[pygame.K_e] and self.can_switch_magic:
-        self.can_switch_magic = False
-        self.magic_switch_time = pygame.time.get_ticks()
-        if self.magic_index < len(magic_data.keys()) - 1:
-          self.magic_index += 1
-        else:
-          self.magic_index = 0
-        self.magic = list(magic_data.keys())[self.magic_index]
 
   def get_status(self):
 
@@ -150,17 +164,10 @@ class Player(Entity):
         self.attacking = False
         self.destroy_attack()
     
-    if not self.can_switch_weapon:
-      if current_time - self.weapon_switch_time >= self.weapon_switch_cooldown:
-        self.can_switch_weapon = True
-
-    if not self.can_switch_magic:
-      if current_time - self.magic_switch_time >= self.magic_switch_cooldown:
-        self.can_switch_magic = True
-    
-    if not self.vulnerable:
-      if current_time - self.hurt_time >= self.invincibility_duration:
-        self.vulnerable = True
+    self.weapon_switch_timer.update()
+    self.magic_switch_timer.update()
+    self.invincibility_timer.update()
+    self.tree_place_timer.update()
 
   def animate(self):
     animation = self.animations[self.status]
@@ -175,7 +182,7 @@ class Player(Entity):
     self.rect = self.image.get_rect(center = self.hitbox.center)
 
     # flicker
-    if not self.vulnerable:
+    if not self.invincibility_timer.can_act():
       alpha = self.wave_value()
       self.image.set_alpha(alpha)
     else:

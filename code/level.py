@@ -1,6 +1,6 @@
 import pygame
 from settings import *
-from tile import Tile
+from tile import Tile, Tree
 from player import Player
 from weapon import Weapon
 from ui import UI
@@ -68,7 +68,10 @@ class Level:
                 random_grass_image)
             if style == 'object':
               surf = graphics['objects'][int(col)]
-              Tile((x,y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
+              if int(col) == 4:
+                Tree((x,y), [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', surf, self.tree_death_action)
+              else:
+                Tile((x,y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
             if style == 'entities':
               if col  == '394': # player coordinate
                 self.player = Player(
@@ -77,7 +80,8 @@ class Level:
                   self.obstacle_sprites, 
                   self.create_attack, 
                   self.destroy_attack,
-                  self.create_magic)
+                  self.create_magic,
+                  self.create_tree)
               else:
                 if col == '390': monster_name = 'bamboo'
                 elif col == '391': monster_name = 'spirit'
@@ -122,14 +126,21 @@ class Level:
               target_sprite.get_damage(self.player, attack_sprite.sprite_type)
 
   def damage_player(self, amount, attack_type):
-    if self.player.vulnerable:
+    if self.player.invincibility_timer.can_act():
       self.player.health -= amount
-      self.player.vulnerable = False
-      self.player.hurt_time = pygame.time.get_ticks()
+      self.player.invincibility_timer.action_init()
       self.animation_player.create_particles(attack_type, self.player.rect.center, [self.visible_sprites])
 
   def trigger_death_particles(self, pos, particle_type):
     self.animation_player.create_particles(particle_type, pos, [self.visible_sprites])
+
+  def tree_death_action(self):
+    self.player.inventory['trees'] += 1
+
+  def create_tree(self, pos, tree_type):
+    graphics = import_folder('../graphics/Objects')
+    surf = graphics[int(tree_type)]
+    Tree(pos, [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', surf, self.tree_death_action)
 
   def add_exp(self, amount):
     self.player.exp += amount

@@ -20,3 +20,22 @@ def import_folder(path):
       surface_list.append(image_surface)
 
   return surface_list
+
+class Timer:
+  def __init__(self, duration):
+    self.acting = False
+    self.action_time = None
+    self.action_duration = duration
+
+  def action_init(self):
+    self.acting = True
+    self.action_time = pygame.time.get_ticks()
+
+  def can_act(self):
+    return not self.acting
+  
+  def update(self):
+    if self.acting:
+      current_time = pygame.time.get_ticks()
+      if current_time - self.action_time >= self.action_duration:
+        self.acting = False
