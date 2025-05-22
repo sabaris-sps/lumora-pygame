@@ -11,6 +11,7 @@ from random import choice, randint
 from particles import AnimationPlayer
 from magic import MagicPlayer
 from upgrade import Upgrade
+from inventory import Inventory
 
 class Level:
   def __init__(self):
@@ -35,6 +36,9 @@ class Level:
     self.ui = UI()
     self.upgrade = Upgrade(self.player)
 
+    # inventory
+    self.inventory = Inventory()
+ 
     # particles
     self.animation_player = AnimationPlayer()
     self.magic_player = MagicPlayer(self.animation_player)
@@ -151,6 +155,7 @@ class Level:
   def run(self):
     self.visible_sprites.custom_draw(self.player)
     self.ui.display(self.player)
+    self.inventory.display(self.player)
 
     if self.game_paused:
       self.upgrade.display()
