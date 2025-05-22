@@ -1,0 +1,41 @@
+# CREATING PLAYER SUMMARY (WITH MOVEMENTS)
+- choose an image for the player
+- add the player to visible sprites and blit it (player creation done)
+- for the inputs part => whenever some key (up/down/left/right) is pressed, increase the player's position by the direction * speed
+- the direction can be pygame vector2 with x,y direction
+
+# CREATING CAMERA SUMMARY
+- creating camera is just displaying all the visible elements in the visible sprites group with an offset based on player's movement. 
+- if player moves up, then move all the visible elements down with the same distance player moved
+- to create offset, make a custom draw function for the groups. we should just screen.blit(sprite.image, offset_pos)
+- the offset_pos is some value based on player's position
+- also display or blit all the sprites based on their y position by sorting and drawing in the custom draw
+
+# GRAPHICS SUMMARY
+- just place the floor beneath all the sprites (before everything is drawn)
+- place different types of sprites like grass/objects(tree, statues) based on the values in the csv files.
+- make collisions working, based on the player's direction, change his position to position just before the obstacle whenever he tries to move forward.
+- use TILED app to create all of these
+
+# PLAYER ANIMATION SUMMARY
+- set a variable that gives us player's status (i.e, right, down, down_idle,up_attack...)
+- load all the player animation images from a folder
+- animate all the images based on player's status
+	- essentially, increasing the frame index every frame_speed duration and putting the image in that frame index
+
+# WEAPON SUMMARY
+- create a weapon class with image with respective player's weapon image list and respective direction based on player status
+- create weapon in the game in level.py whenever an attack is made.
+- destroy the weapon when the attack cooldowns
+- make weapon switch mechanism whenever letter 'q' is pressed with a timer so weapon is not switched many times for just one press
+
+# ENEMY CREATION SUMMARY
+- from the map, based on the enemy type (raccoon, squid...) create an enemy with enemy class
+- make an entity class that player and enemy could inherit from
+	- it could have move and collision mechanics
+- in the custom group class, create a new enemy_update function so we can pass player as argument for the enemy update
+- in the enemy class, based on the monster name, import the graphics and animate the enemy based on enemy's status using similar method as player
+- have a direction and hitbox similar to player
+- get status of the enemy based on distance & direction between player vector and enemy vector. if it is in notice radius, move, in attack radius => attack
+- have an actions function, which will be run in the update(). it does necessary action as per the status - moving and stuff (move by setting self.direction = direction we got earlier)
+- if the monster is attacking, after attack animation's last frame is over, make it not attack and then let it cooldown from some duration, then let it attack again
