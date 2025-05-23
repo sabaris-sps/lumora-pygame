@@ -8,6 +8,10 @@ HITBOX_OFFSET = {
     'object': -40,
     'grass': -10,
     'invisible': 0}
+object_id = {
+  'tree': 4,
+}
+ATTACK_RADIUS = (TILESIZE * 0.8,TILESIZE*0.8)
 
 # UI
 BAR_HEIGHT = 20

@@ -41,7 +41,7 @@ class Player(Entity):
     self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic' : 100, 'speed': 100}
     self.health = self.stats['health'] *0.25
     self.energy = self.stats['energy'] *0.8
-    self.exp = 5000
+    self.exp = 300
     self.speed = self.stats['speed']
 
     # damage timer
@@ -70,43 +70,9 @@ class Player(Entity):
     keys = pygame.key.get_pressed()
     mouse_clicks = pygame.mouse.get_pressed()
 
-    # # movement input
-    # if keys[pygame.K_UP]:
-    #   self.direction.y=-1
-    #   self.status = 'up'
-    # elif keys[pygame.K_DOWN]:
-    #   self.direction.y=1
-    #   self.status = 'down'
-    # else:
-    #   self.direction.y=0
-
-    # if keys[pygame.K_LEFT]:
-    #   self.direction.x=-1
-    #   self.status = 'left'
-    # elif keys[pygame.K_RIGHT]:
-    #   self.direction.x=1
-    #   self.status = 'right'
-    # else:
-    #   self.direction.x=0
-
+    # movement input
     if mouse_clicks[0]: # mouse button down
-      mouse_vec = pygame.math.Vector2(pygame.mouse.get_pos()) - get_camera_offset(pygame.display.get_surface(), self.rect)
-      player_vec = pygame.math.Vector2(self.rect.center)
-      distance = (mouse_vec - player_vec).magnitude()
-      if distance > 0:
-        self.direction = (mouse_vec-player_vec).normalize()
-      else:
-        self.direction = pygame.math.Vector2()
-      if abs(self.direction.x) > abs(self.direction.y):
-        if self.direction.x > 0:
-          self.status = 'right'
-        else:
-          self.status = 'left'
-      else:
-        if self.direction.y > 0:
-          self.status = 'down'
-        else:
-          self.status = 'up'
+      self.direction, self.status = get_mouse_direction_status(self.rect)
     else:
       self.direction = pygame.math.Vector2()
 
@@ -126,6 +92,7 @@ class Player(Entity):
       cost = magic_data[self.magic]['cost']
       self.create_magic(style, strength, cost)
 
+    # weapon switch input
     if keys[pygame.K_q] and self.weapon_switch_timer.can_act():
       self.weapon_switch_timer.action_init()
       if self.weapon_index < len(weapon_data.keys()) - 1:
@@ -134,6 +101,7 @@ class Player(Entity):
         self.weapon_index = 0
       self.weapon = list(weapon_data.keys())[self.weapon_index]
 
+    # magic switch input
     if keys[pygame.K_e] and self.magic_switch_timer.can_act():
       self.magic_switch_timer.action_init()
       if self.magic_index < len(magic_data.keys()) - 1:
@@ -148,15 +116,21 @@ class Player(Entity):
 
       # place the tree
       if self.status.split('_')[0] == 'right':
-        self.create_tree(self.rect.topright, 4)
+        self.create_tree(self.rect.topright)
       if self.status.split('_')[0] == 'left':
-        self.create_tree(self.rect.topleft + pygame.math.Vector2(-2*TILESIZE, 0), 4)
+        self.create_tree(self.rect.topleft + pygame.math.Vector2(-2*TILESIZE, 0))
       if self.status.split('_')[0] == 'up':
-        self.create_tree(self.rect.topleft + pygame.math.Vector2(0, -TILESIZE//2), 4)
+        self.create_tree(self.rect.topleft + pygame.math.Vector2(0, -TILESIZE//2))
       if self.status.split('_')[0] == 'down':
-        self.create_tree(self.rect.bottomleft + pygame.math.Vector2(0, TILESIZE//2), 4)
+        self.create_tree(self.rect.bottomleft + pygame.math.Vector2(0, TILESIZE//2))
       
       self.inventory['trees'] -= 1
+
+    # standing/attacking direction input
+    if self.attacking:
+      self.status = get_mouse_direction_status(self.rect)[1] + '_attack'
+    else:
+      self.status = get_mouse_direction_status(self.rect)[1]
 
   def get_status(self):
 

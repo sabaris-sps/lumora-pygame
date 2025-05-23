@@ -56,6 +56,13 @@ class AnimationPlayer:
     animation_frames = self.frames[animation_type]
     ParticleEffect(pos, animation_frames, groups)
 
+  def play_tree_cut(self, tree_surf, tree_rect, groups):
+    tree_mask = pygame.mask.from_surface(tree_surf)
+    masked_surf = tree_mask.to_surface(unsetcolor=None)
+    animation_frames = [masked_surf] * 3
+    ParticleEffect(tree_rect.center, animation_frames, groups)
+
+
 class ParticleEffect(pygame.sprite.Sprite):
   def __init__(self, pos, animation_frames, groups):
     super().__init__(groups)

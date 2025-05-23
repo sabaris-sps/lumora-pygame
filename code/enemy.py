@@ -179,11 +179,11 @@ class EnemyHealth():
     offset_pos = pos - pygame.math.Vector2(0,40) - self.offset
 
     self.bg_rect.center = offset_pos
-    pygame.draw.rect(self.display_surface, UI_BG_COLOR, self.bg_rect)
+    pygame.draw.rect(self.display_surface, UI_BG_COLOR, self.bg_rect, border_radius=5)
 
     ratio = value/max_value
     health_bar = self.bg_rect.copy()
     health_bar.width = ratio * self.bg_rect.width
 
-    pygame.draw.rect(self.display_surface, HEALTH_COLOR, health_bar)
-    pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, self.bg_rect, 2)
+    pygame.draw.rect(self.display_surface, HEALTH_COLOR, health_bar, border_radius=5)
+    pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, self.bg_rect, 2, border_radius=5)

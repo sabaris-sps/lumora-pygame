@@ -34,7 +34,7 @@ class Tree(Tile):
 
   def check_death(self):
     if self.health <= 0:
-      self.tree_death_action()
+      self.tree_death_action(self.image, self.rect)
       self.kill()
 
   def cooldowns(self):

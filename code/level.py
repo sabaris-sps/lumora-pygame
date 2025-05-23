@@ -50,7 +50,7 @@ class Level:
       'object': import_csv_layout('../map/map_Objects.csv'),
       'entities': import_csv_layout('../map/map_Entities.csv')
     }
-    graphics = {
+    self.graphics = {
       'grass': import_folder('../graphics/Grass'),
       'objects': import_folder('../graphics/Objects')
     }
@@ -64,15 +64,15 @@ class Level:
             if style == 'boundary':
               Tile((x,y), [self.obstacle_sprites], 'invisible')
             if style == 'grass':
-              random_grass_image = choice(graphics['grass'])
+              random_grass_image = choice(self.graphics['grass'])
               Tile(
                 (x,y), 
                 [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 
                 'grass', 
                 random_grass_image)
             if style == 'object':
-              surf = graphics['objects'][int(col)]
-              if int(col) == 4:
+              surf = self.graphics['objects'][int(col)]
+              if int(col) == object_id['tree']:
                 Tree((x,y), [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', surf, self.tree_death_action)
               else:
                 Tile((x,y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
@@ -138,13 +138,15 @@ class Level:
   def trigger_death_particles(self, pos, particle_type):
     self.animation_player.create_particles(particle_type, pos, [self.visible_sprites])
 
-  def tree_death_action(self):
+  def tree_death_action(self, tree_surf, tree_rect):
     self.player.inventory['trees'] += 1
+    self.animation_player.play_tree_cut(tree_surf, tree_rect, [self.visible_sprites])
+    # surf = self.graphics['objects'][int(object_id['wood'])]
+    # Tile(tree_rect.center+pygame.math.Vector2(-TILESIZE,0), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
-  def create_tree(self, pos, tree_type):
+  def create_tree(self, pos):
     graphics = import_folder('../graphics/Objects')
-    surf = graphics[int(tree_type)]
-    Tree(pos, [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', surf, self.tree_death_action)
+    Tree(pos, [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', graphics[object_id['tree']], self.tree_death_action)
 
   def add_exp(self, amount):
     self.player.exp += amount

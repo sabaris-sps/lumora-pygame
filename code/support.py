@@ -51,3 +51,25 @@ def get_camera_offset(display_surface, player_rect):
   offset_pos = - pygame.math.Vector2(0,40) - offset
 
   return offset_pos
+
+def get_mouse_direction_status(player_rect):
+  mouse_vec = pygame.math.Vector2(pygame.mouse.get_pos()) - get_camera_offset(pygame.display.get_surface(), player_rect)
+  player_vec = pygame.math.Vector2(player_rect.center)
+  distance = (mouse_vec - player_vec).magnitude()
+  if distance > 0:
+    direction = (mouse_vec-player_vec).normalize()
+  else:
+    direction = pygame.math.Vector2()
+  
+  if abs(direction.x) > abs(direction.y):
+    if direction.x > 0:
+      status = 'right'
+    else:
+      status = 'left'
+  else:
+    if direction.y > 0:
+      status = 'down'
+    else:
+      status = 'up'
+
+  return (direction, status)      
