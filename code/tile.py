@@ -27,9 +27,9 @@ class Tree(Tile):
   def get_damage(self, player ,attack_type):
     if self.is_invincible_timer.can_act():
       if attack_type == 'weapon':
-        self.health -= player.get_full_weapon_damage()
+        self.health -= player.get_full_weapon_damage(self.rect)
       elif attack_type == 'magic':
-        self.health -= player.get_full_magic_damage()
+        self.health -= player.get_full_magic_damage(self.rect)
       self.is_invincible_timer.action_init()
 
   def check_death(self):

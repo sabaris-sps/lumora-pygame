@@ -11,6 +11,7 @@ class UI:
     # bar setup
     self.health_bar_rect = pygame.Rect(10,10,HEALTH_BAR_WIDTH, BAR_HEIGHT)
     self.energy_bar_rect = pygame.Rect(10,34,ENERGY_BAR_WIDTH, BAR_HEIGHT)
+    self.attack_power_rect = pygame.Rect(1150,10,ATTACK_POWER_WIDTH, BAR_HEIGHT)
 
     # convert weapon dictionary
     self.weapon_graphics = []
@@ -74,6 +75,7 @@ class UI:
   def display(self, player):
     self.show_bar(player.health, player.stats['health'], self.health_bar_rect, HEALTH_COLOR)
     self.show_bar(player.energy, player.stats['energy'], self.energy_bar_rect, ENERGY_COLOR)
+    self.show_bar(player.attack_power, 1, self.attack_power_rect, ATTACK_POWER_COLOR)
 
     self.show_exp(player.exp)
 
