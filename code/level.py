@@ -11,7 +11,7 @@ from random import choice, randint
 from particles import AnimationPlayer
 from magic import MagicPlayer
 from upgrade import Upgrade
-from inventory import Inventory
+from inventory import Inventory_Bar
 
 class Level:
   def __init__(self):
@@ -19,6 +19,7 @@ class Level:
     # get the display surface
     self.display_surface = pygame.display.get_surface()
     self.game_paused = False
+    self.menu_open = None
     
     # sprite group setup
     self.visible_sprites = YSortCameraGroup()
@@ -37,7 +38,7 @@ class Level:
     self.upgrade = Upgrade(self.player)
 
     # inventory
-    self.inventory = Inventory()
+    self.inventory_bar = Inventory_Bar()
  
     # particles
     self.animation_player = AnimationPlayer()
@@ -140,10 +141,8 @@ class Level:
     self.animation_player.create_particles(particle_type, pos, [self.visible_sprites])
 
   def tree_death_action(self, tree_surf, tree_rect):
-    self.player.inventory['trees'] += 1
+    self.player.inventory['tree'] += 1
     self.animation_player.play_tree_cut(tree_surf, tree_rect, [self.visible_sprites])
-    # surf = self.graphics['objects'][int(object_id['wood'])]
-    # Tile(tree_rect.center+pygame.math.Vector2(-TILESIZE,0), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
   def create_tree(self, pos):
     graphics = import_folder('../graphics/Objects')
@@ -152,16 +151,24 @@ class Level:
   def add_exp(self, amount):
     self.player.exp += amount
 
-  def toggle_menu(self):
-    self.game_paused = not self.game_paused
+  def toggle_menu(self, menu):
+    if self.game_paused:
+      self.game_paused = False
+      self.menu_open = None
+    elif not self.game_paused:
+      self.game_paused = True
+      self.menu_open = menu
 
   def run(self):
     self.visible_sprites.custom_draw(self.player)
     self.ui.display(self.player)
-    self.inventory.display(self.player)
+    self.inventory_bar.display(self.player)
 
     if self.game_paused:
-      self.upgrade.display()
+      if self.menu_open == 'upgrade':
+        self.upgrade.display()
+      elif self.menu_open == 'inventory':
+        self.inventory.display()
     else:
       if self.current_attack:
         self.current_attack.move(self.player)

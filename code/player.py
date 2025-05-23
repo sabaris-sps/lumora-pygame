@@ -56,9 +56,13 @@ class Player(Entity):
     self.weapon_attack_sound.set_volume(0.2)
 
     # inventory
-    self.inventory = {'trees': 0, 'grass': 0}
+    self.inventory = {'tree': 0, 'grass': 0}
     self.tree_place_timer = Timer(500)
     self.create_tree = create_tree
+    self.inventory_workspace = [{'feedstock': 'grass', 'count': 5, 'product': 'tree'}]
+
+    # roll motion
+    self.roll_timer = Timer(300)
 
   def import_player_assets(self):
     character_path = '../graphics/player'
@@ -79,6 +83,10 @@ class Player(Entity):
       self.direction, self.status = get_mouse_direction_status(self.rect)
     else:
       self.direction = pygame.math.Vector2()
+    
+    # roll motion input
+    if keys[pygame.K_LSHIFT] and self.roll_timer.can_act():
+      self.roll_timer.action_init()
 
     # attack input
     if keys[pygame.K_SPACE] and not self.attacking:
@@ -115,7 +123,7 @@ class Player(Entity):
       self.magic = list(magic_data.keys())[self.magic_index]
 
     # tree placing input
-    if keys[pygame.K_t] and self.tree_place_timer.can_act() and self.inventory['trees']>0:
+    if keys[pygame.K_t] and self.tree_place_timer.can_act() and self.inventory['tree']>0:
       self.tree_place_timer.action_init()
 
       # place the tree
@@ -128,7 +136,7 @@ class Player(Entity):
       if self.status.split('_')[0] == 'down':
         self.create_tree(self.rect.bottomleft + pygame.math.Vector2(0, TILESIZE//2))
       
-      self.inventory['trees'] -= 1
+      self.inventory['tree'] -= 1
 
     # standing/attacking direction input
     if self.attacking:
@@ -165,6 +173,7 @@ class Player(Entity):
     self.magic_switch_timer.update()
     self.invincibility_timer.update()
     self.tree_place_timer.update()
+    self.roll_timer.update()
 
   def animate(self):
     animation = self.animations[self.status]
@@ -240,7 +249,11 @@ class Player(Entity):
     self.cooldowns()
     self.get_status()
     self.animate()
-    self.move(self.stats['speed'])
     self.energy_recovery()
     self.reduce_attack_power()
+    speed = self.stats['speed']
+    if not self.roll_timer.can_act():
+      ratio = (pygame.time.get_ticks() - self.roll_timer.action_time) / self.roll_timer.action_duration
+      speed *= 1 + ratio
+    self.move(speed)
     
