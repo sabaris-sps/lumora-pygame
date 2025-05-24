@@ -79,24 +79,41 @@ class Player(Entity):
     mouse_clicks = pygame.mouse.get_pressed()
 
     # movement input
-    if mouse_clicks[0]: # mouse button down
-      self.direction, self.status = get_mouse_direction_status(self.rect)
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+      self.direction.x = -1
+    elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+      self.direction.x = 1
     else:
-      self.direction = pygame.math.Vector2()
-    
+      self.direction.x = 0
+    if keys[pygame.K_w] or keys[pygame.K_UP]:
+      self.direction.y = -1
+    elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
+      self.direction.y = 1
+    else:
+      self.direction.y = 0
+    if self.direction.x > 0:
+      self.status = 'right'
+    elif self.direction.x < 0:
+      self.status = 'left'
+    if self.direction.y > 0:
+      self.status = 'down'
+    elif self.direction.y < 0:
+      self.status = 'up'
+
     # roll motion input
     if keys[pygame.K_LSHIFT] and self.roll_timer.can_act():
       self.roll_timer.action_init()
 
     # attack input
-    if keys[pygame.K_SPACE] and not self.attacking:
+    # if keys[pygame.K_SPACE] and not self.attacking:
+    if mouse_clicks[0] and not self.attacking:
       self.attacking = True
       self.attack_time = pygame.time.get_ticks()
       self.create_attack()
       self.weapon_attack_sound.play()
 
     # magic input
-    if keys[pygame.K_LCTRL] and not self.attacking:
+    if keys[pygame.K_SPACE] and not self.attacking:
       self.attacking = True
       self.attack_time = pygame.time.get_ticks()
       style = self.magic
@@ -123,7 +140,7 @@ class Player(Entity):
       self.magic = list(magic_data.keys())[self.magic_index]
 
     # tree placing input
-    if keys[pygame.K_t] and self.tree_place_timer.can_act() and self.inventory['tree']>0:
+    if keys[pygame.K_LALT] and self.tree_place_timer.can_act() and self.inventory['tree']>0:
       self.tree_place_timer.action_init()
 
       # place the tree
@@ -141,8 +158,6 @@ class Player(Entity):
     # standing/attacking direction input
     if self.attacking:
       self.status = get_mouse_direction_status(self.rect)[1] + '_attack'
-    else:
-      self.status = get_mouse_direction_status(self.rect)[1]
 
   def get_status(self):
 
