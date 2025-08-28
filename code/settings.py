@@ -12,6 +12,7 @@ object_id = {
   'tree': 4,
 }
 ATTACK_RADIUS = (TILESIZE * 0.8,TILESIZE*0.8)
+BOUNDARY_LENGTH = 1/56
 
 # UI
 BAR_HEIGHT = 20

@@ -2,10 +2,11 @@ import pygame
 from settings import *
 from support import *
 from entity import Entity
-from math import sin
+from math import sin, hypot
+import cv2
 
 class Player(Entity):
-  def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, create_tree):
+  def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, create_tree, detector, cap):
     super().__init__(groups)
     self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
     self.image_backup = self.image
@@ -63,6 +64,11 @@ class Player(Entity):
 
     # roll motion
     self.roll_timer = Timer(300)
+    
+    # Camera input
+    self.detector = detector
+    self.cap = cap
+    self.speed_addon = 0
 
   def import_player_assets(self):
     character_path = '../graphics/player'
@@ -77,20 +83,37 @@ class Player(Entity):
   def input(self):
     keys = pygame.key.get_pressed()
     mouse_clicks = pygame.mouse.get_pressed()
+    
+    # Camera input setup
+    ret, frame = self.cap.read()
+    if not ret:
+      print('Error reading camera')
+    frame = cv2.flip(frame, 1)
+    img_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pygame_frame = pygame.surfarray.make_surface(img_RGB.swapaxes(0,1))
+    marker_pos = self.detector.get_marker_pos(frame)
+    quadrant = Coord(0,0)
+    if marker_pos:
+      quadrant = get_marker_quadrants(marker_pos)
+      self.show_camera(pygame_frame, marker_pos)
+      
+    self.speed_addon = self.speed*hypot(quadrant.x, quadrant.y)*4
 
     # movement input
-    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+    if keys[pygame.K_a] or keys[pygame.K_LEFT] or quadrant.x < 0:
       self.direction.x = -1
-    elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+    elif keys[pygame.K_d] or keys[pygame.K_RIGHT] or quadrant.x > 0:
       self.direction.x = 1
     else:
       self.direction.x = 0
-    if keys[pygame.K_w] or keys[pygame.K_UP]:
+    
+    if keys[pygame.K_w] or keys[pygame.K_UP] or quadrant.y < 0:
       self.direction.y = -1
-    elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
+    elif keys[pygame.K_s] or keys[pygame.K_DOWN] or quadrant.y >0:
       self.direction.y = 1
     else:
       self.direction.y = 0
+    
     if self.direction.x > 0:
       self.status = 'right'
     elif self.direction.x < 0:
@@ -259,6 +282,30 @@ class Player(Entity):
     if self.attack_power >= 1:
       self.attack_power = 1
 
+  def show_camera(self, frame, marker_pos):
+    frame_width = frame.get_width()
+    
+    scale_factor = WIDTH/frame_width
+    img_surf = pygame.transform.scale_by(frame, scale_factor).convert_alpha()
+    img_surf.set_alpha(50)
+    img_rect = img_surf.get_rect()
+    img_rect.center = (WIDTH/2, HEIGHT/2)
+    
+    boundary_rect = pygame.Rect(0,0, BOUNDARY_LENGTH*img_surf.get_width(), BOUNDARY_LENGTH*img_surf.get_height())
+    boundary_rect.center = img_rect.center
+    
+    display_surface = pygame.display.get_surface()
+    display_surface.blit(img_surf, img_rect)
+    
+    pygame.draw.rect(display_surface, "blue", boundary_rect, width=1)
+    
+    offset_x = WIDTH/2 - img_surf.get_width()/2
+    offset_y = HEIGHT/2 - img_surf.get_height()/2
+    scaled_marker_pos = Coord(0, 0)
+    scaled_marker_pos.x = marker_pos.x*frame.get_width()*scale_factor + offset_x
+    scaled_marker_pos.y = marker_pos.y*frame.get_height()*scale_factor + offset_y
+    pygame.draw.circle(display_surface, "red", (scaled_marker_pos.x, scaled_marker_pos.y), 5)
+
   def update(self):
     self.input()
     self.cooldowns()
@@ -270,5 +317,4 @@ class Player(Entity):
     if not self.roll_timer.can_act():
       ratio = (pygame.time.get_ticks() - self.roll_timer.action_time) / self.roll_timer.action_duration
       speed *= 1 + ratio
-    self.move(speed)
-    
+    self.move(speed+self.speed_addon)

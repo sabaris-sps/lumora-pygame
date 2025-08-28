@@ -1,6 +1,7 @@
 import pygame
 from csv import reader
 from os import walk
+from settings import *
 
 def import_csv_layout(path):
   terrain_map = []
@@ -72,4 +73,30 @@ def get_mouse_direction_status(player_rect):
     else:
       status = 'up'
 
-  return (direction, status)      
+  return (direction, status)
+
+class Coord:
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+
+def get_marker_quadrants(marker):
+  quadrant = Coord(0,0)
+  quadrant.x = marker.x - 0.5
+  quadrant.y = marker.y - 0.5
+  
+  # check if marker is in center box
+  centered_marker = Coord(marker.x - 0.5, marker.y - 0.5)
+  is_bound_x = abs(centered_marker.x) <= BOUNDARY_LENGTH
+  is_bound_y = abs(centered_marker.y) <= BOUNDARY_LENGTH
+  
+  if is_bound_x and is_bound_y: quadrant = Coord(0,0)
+  elif is_bound_x:
+    is_bound_x = abs(centered_marker.x) <= BOUNDARY_LENGTH/5
+    if is_bound_x: quadrant.x = 0
+  elif is_bound_y:
+    is_bound_y = abs(centered_marker.y) <= BOUNDARY_LENGTH/5
+    if is_bound_y: quadrant.y = 0
+  
+  return quadrant
+  

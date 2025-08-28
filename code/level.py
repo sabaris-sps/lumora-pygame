@@ -12,6 +12,8 @@ from particles import AnimationPlayer
 from magic import MagicPlayer
 from upgrade import Upgrade
 from inventory import Inventory_Bar
+from detector import Detector
+import cv2
 
 class Level:
   def __init__(self):
@@ -30,6 +32,12 @@ class Level:
     self.attack_sprites = pygame.sprite.Group()
     self.attackable_sprites = pygame.sprite.Group()
 
+    # video detection for movement
+    self.detector = Detector()
+    self.cap = cv2.VideoCapture(0)
+    if not self.cap.isOpened():
+      print('Error opening camera')
+
     # sprite setup
     self.create_map()
 
@@ -43,7 +51,7 @@ class Level:
     # particles
     self.animation_player = AnimationPlayer()
     self.magic_player = MagicPlayer(self.animation_player)
-
+        
   def create_map(self):
     layouts = {
       'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
@@ -86,7 +94,9 @@ class Level:
                   self.create_attack, 
                   self.destroy_attack,
                   self.create_magic,
-                  self.create_tree)
+                  self.create_tree,
+                  self.detector,
+                  self.cap)
               else:
                 if col == '390': monster_name = 'bamboo'
                 elif col == '391': monster_name = 'spirit'
@@ -159,11 +169,11 @@ class Level:
       self.game_paused = True
       self.menu_open = menu
 
-  def run(self):
+  def run(self):    
     self.visible_sprites.custom_draw(self.player)
     self.ui.display(self.player)
     self.inventory_bar.display(self.player)
-
+    
     if self.game_paused:
       if self.menu_open == 'upgrade':
         self.upgrade.display()
