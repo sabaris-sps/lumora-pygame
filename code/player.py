@@ -100,19 +100,24 @@ class Player(Entity):
     self.speed_addon = self.speed*hypot(quadrant.x, quadrant.y)*4
 
     # movement input
-    if keys[pygame.K_a] or keys[pygame.K_LEFT] or quadrant.x < 0:
-      self.direction.x = -1
-    elif keys[pygame.K_d] or keys[pygame.K_RIGHT] or quadrant.x > 0:
-      self.direction.x = 1
-    else:
-      self.direction.x = 0
+    # if keys[pygame.K_a] or keys[pygame.K_LEFT] or quadrant.x < 0:
+    #   self.direction.x = -1
+    # elif keys[pygame.K_d] or keys[pygame.K_RIGHT] or quadrant.x > 0:
+    #   self.direction.x = 1
+    # else:
+    #   self.direction.x = 0
     
-    if keys[pygame.K_w] or keys[pygame.K_UP] or quadrant.y < 0:
-      self.direction.y = -1
-    elif keys[pygame.K_s] or keys[pygame.K_DOWN] or quadrant.y >0:
-      self.direction.y = 1
-    else:
-      self.direction.y = 0
+    # if keys[pygame.K_w] or keys[pygame.K_UP] or quadrant.y < 0:
+    #   self.direction.y = -1
+    # elif keys[pygame.K_s] or keys[pygame.K_DOWN] or quadrant.y >0:
+    #   self.direction.y = 1
+    # else:
+    #   self.direction.y = 0
+    
+    self.direction = pygame.math.Vector2(quadrant.x, quadrant.y)
+    if self.direction.magnitude() != 0:
+      self.direction.normalize()
+      
     
     if self.direction.x > 0:
       self.status = 'right'
