@@ -5,4 +5,12 @@ Movement of the player can be done with camera itself. Moving the face moves the
 
 ### Here's a pic of the game.
 
-![Screenshot of game](./readme/game-screenshot.png "Screenshot of game")
+![Game video](./readme/game-video.mp4 "Game Video")
+
+## Movement instructions
+
+- Make a fist - lock movement
+- Index finger up - Move
+- Thumb finger out - Attack
+- Index + Thumb finger out - Move + attack
+- Open palm - Magic

@@ -100,3 +100,16 @@ def get_marker_quadrants(marker):
   
   return quadrant
   
+def get_direction_from_quadrant(quadrant):
+  status = 'right'
+  if abs(quadrant.x) > abs(quadrant.y):
+      if quadrant.x > 0:
+        status = 'right'
+      else:
+        status = 'left'
+  else:
+    if quadrant.y > 0:
+      status = 'down'
+    else:
+      status = 'up'
+  return status

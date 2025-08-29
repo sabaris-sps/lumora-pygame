@@ -91,63 +91,36 @@ class Player(Entity):
     frame = cv2.flip(frame, 1)
     img_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pygame_frame = pygame.surfarray.make_surface(img_RGB.swapaxes(0,1))
-    marker_pos = self.detector.get_marker_pos(frame)
-    quadrant = Coord(0,0)
-    if marker_pos:
-      quadrant = get_marker_quadrants(marker_pos)
-      self.show_camera(pygame_frame, marker_pos)
+    input_status = self.detector.get_hand_status(frame)
+    self.quadrant = Coord(0,0)
+    self.direction = pygame.math.Vector2(0,0)
+    if input_status!=None:
+      index_marker_pos = self.detector.index_marker_pos
+      self.quadrant = get_marker_quadrants(index_marker_pos)
+      self.show_camera(pygame_frame, index_marker_pos)
       
-    self.speed_addon = self.speed*hypot(quadrant.x, quadrant.y)*4
-
-    # movement input
-    # if keys[pygame.K_a] or keys[pygame.K_LEFT] or quadrant.x < 0:
-    #   self.direction.x = -1
-    # elif keys[pygame.K_d] or keys[pygame.K_RIGHT] or quadrant.x > 0:
-    #   self.direction.x = 1
-    # else:
-    #   self.direction.x = 0
+      # movement input
+      if 'move' in input_status and 'magic' not in input_status:
+        self.speed_addon = self.speed*hypot(self.quadrant.x, self.quadrant.y)*4    
+        self.direction = pygame.math.Vector2(self.quadrant.x, self.quadrant.y)
+        if self.direction.magnitude() != 0:
+          self.direction.normalize()
+              
+      # attack input
+      if 'attack' in input_status and not self.attacking:
+        self.attacking = True
+        self.attack_time = pygame.time.get_ticks()
+        self.create_attack()
+        self.weapon_attack_sound.play()
     
-    # if keys[pygame.K_w] or keys[pygame.K_UP] or quadrant.y < 0:
-    #   self.direction.y = -1
-    # elif keys[pygame.K_s] or keys[pygame.K_DOWN] or quadrant.y >0:
-    #   self.direction.y = 1
-    # else:
-    #   self.direction.y = 0
-    
-    self.direction = pygame.math.Vector2(quadrant.x, quadrant.y)
-    if self.direction.magnitude() != 0:
-      self.direction.normalize()
-      
-    
-    if self.direction.x > 0:
-      self.status = 'right'
-    elif self.direction.x < 0:
-      self.status = 'left'
-    if self.direction.y > 0:
-      self.status = 'down'
-    elif self.direction.y < 0:
-      self.status = 'up'
-
-    # roll motion input
-    if keys[pygame.K_LSHIFT] and self.roll_timer.can_act():
-      self.roll_timer.action_init()
-
-    # attack input
-    # if keys[pygame.K_SPACE] and not self.attacking:
-    if mouse_clicks[0] and not self.attacking:
-      self.attacking = True
-      self.attack_time = pygame.time.get_ticks()
-      self.create_attack()
-      self.weapon_attack_sound.play()
-
-    # magic input
-    if keys[pygame.K_SPACE] and not self.attacking:
-      self.attacking = True
-      self.attack_time = pygame.time.get_ticks()
-      style = self.magic
-      strength = magic_data[self.magic]['strength'] + self.stats['magic']
-      cost = magic_data[self.magic]['cost']
-      self.create_magic(style, strength, cost)
+      # magic input
+      if 'magic' in input_status and not self.attacking:
+        self.attacking = True
+        self.attack_time = pygame.time.get_ticks()
+        style = self.magic
+        strength = magic_data[self.magic]['strength'] + self.stats['magic']
+        cost = magic_data[self.magic]['cost']
+        self.create_magic(style, strength, cost)
 
     # weapon switch input
     if keys[pygame.K_q] and self.weapon_switch_timer.can_act():
@@ -166,6 +139,10 @@ class Player(Entity):
       else:
         self.magic_index = 0
       self.magic = list(magic_data.keys())[self.magic_index]
+    
+    # roll motion input
+    if keys[pygame.K_LSHIFT] and self.roll_timer.can_act():
+      self.roll_timer.action_init()
 
     # tree placing input
     if keys[pygame.K_LALT] and self.tree_place_timer.can_act() and self.inventory['tree']>0:
@@ -183,12 +160,21 @@ class Player(Entity):
       
       self.inventory['tree'] -= 1
 
+    # setting status
+    if self.direction.x > 0:
+      self.status = 'right'
+    elif self.direction.x < 0:
+      self.status = 'left'
+    if self.direction.y > 0:
+      self.status = 'down'
+    elif self.direction.y < 0:
+      self.status = 'up'
+      
     # standing/attacking direction input
     if self.attacking:
-      self.status = get_mouse_direction_status(self.rect)[1] + '_attack'
+      self.status = get_direction_from_quadrant(self.quadrant) + '_attack'
 
   def get_status(self):
-
     # idle status
     if self.direction.x == 0 and self.direction.y == 0:
       if not 'idle' in self.status and not 'attack' in self.status:

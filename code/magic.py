@@ -26,7 +26,8 @@ class MagicPlayer:
       player.energy -= cost
       self.sounds['flame'].play()
 
-      direction = get_mouse_direction_status(player.rect)[0]
+      # direction = get_mouse_direction_status(player.rect)[0]
+      direction = pygame.math.Vector2(player.quadrant.x, player.quadrant.y).normalize()
 
       for i in range(1,6):
         offset_x = (i * direction * TILESIZE).x
