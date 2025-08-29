@@ -5,7 +5,7 @@ Movement of the player can be done with camera itself. Moving the face moves the
 
 ### Here's a pic of the game.
 
-![Game video](./readme/game-video.mp4 "Game Video")
+![Game Screenshot](./readme/game-screenshot.png "Game Screenshot")
 
 ## Movement instructions
 
