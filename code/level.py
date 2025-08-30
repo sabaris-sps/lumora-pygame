@@ -55,6 +55,7 @@ class Level:
     
     # display message
     self.display_messages = DisplayMessages()
+    self.font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
         
   def create_map(self):
     layouts = {
@@ -121,10 +122,10 @@ class Level:
   def create_magic(self, style, strength, cost):
     if style == 'heal':
       if not self.magic_player.heal(self.player, strength, cost, [self.visible_sprites]):
-        self.display_messages.add('Energy not enough!')
+        self.display_messages.add('Energy not enough')
     elif style == 'flame':
       if not self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites]):
-        self.display_messages.add('Energy not enough!')
+        self.display_messages.add('Energy not enough')
 
   def destroy_attack(self):
     if self.current_attack:
@@ -175,23 +176,40 @@ class Level:
       self.game_paused = True
       self.menu_open = menu
 
-  def run(self):    
+  def display_game_over(self):
+    screen_surf = pygame.Surface((WIDTH, HEIGHT)).convert_alpha()
+    screen_surf.set_alpha(200)
+    screen_rect = screen_surf.get_rect()
+    screen_rect.topleft = (0,0)
+    
+    text_surf = self.font.render("Player died. Game Over. Score: "+str(self.player.exp), False, TEXT_COLOR)
+    text_rect = text_surf.get_rect(center = (WIDTH//2, HEIGHT//2))
+    bg_rect = text_rect.copy()
+    
+    self.display_surface.blit(screen_surf, screen_rect)
+    # pygame.draw.rect(self.display_surface, UI_BG_COLOR, bg_rect)
+    self.display_surface.blit(text_surf, text_rect)
+
+  def run(self):
     self.visible_sprites.custom_draw(self.player)
     self.ui.display(self.player)
     self.display_messages.update()
     self.inventory_bar.display(self.player)
     
-    if self.game_paused:
-      if self.menu_open == 'upgrade':
-        self.upgrade.display()
-      elif self.menu_open == 'inventory':
-        self.inventory.display()
+    if self.player.health > 0:
+      if self.game_paused:
+        if self.menu_open == 'upgrade':
+          self.upgrade.display()
+        elif self.menu_open == 'inventory':
+          self.inventory.display()
+      else:
+        if self.current_attack:
+          self.current_attack.move(self.player)
+        self.visible_sprites.update()
+        self.visible_sprites.enemy_update(self.player)
+        self.player_attack_logic()
     else:
-      if self.current_attack:
-        self.current_attack.move(self.player)
-      self.visible_sprites.update()
-      self.visible_sprites.enemy_update(self.player)
-      self.player_attack_logic()
+      self.display_game_over()    
       
 
 class YSortCameraGroup(pygame.sprite.Group):
