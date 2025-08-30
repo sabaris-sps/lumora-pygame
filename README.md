@@ -1,7 +1,7 @@
 ## What is this?
 
-This is a zelda styles game created with pygame.
-Movement of the player can be done with camera itself. Moving the face moves the player.
+This is a zelda styled game created with pygame.
+Movement of the player is done through hand control from camera
 
 ### Here's a pic of the game.
 

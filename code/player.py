@@ -38,7 +38,7 @@ class Player(Entity):
     self.create_magic = create_magic
     self.magic_index = 0
     self.magic = list(magic_data.keys())[self.magic_index]
-    self.magic_switch_timer = Timer(200)
+    self.magic_switch_timer = Timer(500)
 
     # stats
     self.stats = {'health': 100,'energy':60,'attack': 10,'magic': 4,'speed': 5}

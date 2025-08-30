@@ -14,6 +14,7 @@ from upgrade import Upgrade
 from inventory import Inventory_Bar
 from detector import Detector
 import cv2
+from display_message import DisplayMessages
 
 class Level:
   def __init__(self):
@@ -51,6 +52,9 @@ class Level:
     # particles
     self.animation_player = AnimationPlayer()
     self.magic_player = MagicPlayer(self.animation_player)
+    
+    # display message
+    self.display_messages = DisplayMessages()
         
   def create_map(self):
     layouts = {
@@ -116,9 +120,11 @@ class Level:
 
   def create_magic(self, style, strength, cost):
     if style == 'heal':
-      self.magic_player.heal(self.player, strength, cost, [self.visible_sprites])
+      if not self.magic_player.heal(self.player, strength, cost, [self.visible_sprites]):
+        self.display_messages.add('Energy not enough!')
     elif style == 'flame':
-      self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
+      if not self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites]):
+        self.display_messages.add('Energy not enough!')
 
   def destroy_attack(self):
     if self.current_attack:
@@ -172,6 +178,7 @@ class Level:
   def run(self):    
     self.visible_sprites.custom_draw(self.player)
     self.ui.display(self.player)
+    self.display_messages.update()
     self.inventory_bar.display(self.player)
     
     if self.game_paused:
@@ -185,7 +192,7 @@ class Level:
       self.visible_sprites.update()
       self.visible_sprites.enemy_update(self.player)
       self.player_attack_logic()
-
+      
 
 class YSortCameraGroup(pygame.sprite.Group):
   def __init__(self):

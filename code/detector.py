@@ -3,10 +3,8 @@ import mediapipe as mp
 
 class Detector:
   def __init__(self):
-    self.face_mesh_mp = mp.solutions.face_mesh
-    self.face_mesh = self.face_mesh_mp.FaceMesh(static_image_mode = False, refine_landmarks=True)
     self.hands_mp = mp.solutions.hands
-    self.hands = self.hands_mp.Hands(static_image_mode = False)
+    self.hands = self.hands_mp.Hands()
     
   def get_marker_pos(self, frame):
     self.face_res = self.face_mesh.process(frame)
