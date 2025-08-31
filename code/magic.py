@@ -31,7 +31,7 @@ class MagicPlayer:
       self.sounds['flame'].play()
 
       # direction = get_mouse_direction_status(player.rect)[0]
-      direction = pygame.math.Vector2(player.quadrant.x, player.quadrant.y)
+      direction = pygame.math.Vector2(player.index_quadrant.x, player.index_quadrant.y)
       if direction.magnitude() !=0:
         direction = direction.normalize()
 

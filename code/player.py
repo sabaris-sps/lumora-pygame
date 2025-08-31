@@ -82,7 +82,6 @@ class Player(Entity):
 
   def input(self):
     keys = pygame.key.get_pressed()
-    mouse_clicks = pygame.mouse.get_pressed()
     
     # Camera input setup
     ret, frame = self.cap.read()
@@ -92,17 +91,20 @@ class Player(Entity):
     img_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pygame_frame = pygame.surfarray.make_surface(img_RGB.swapaxes(0,1))
     input_status = self.detector.get_hand_status(frame)
-    self.quadrant = Coord(0,0)
+    self.index_quadrant = Coord(0,0)
+    self.thumb_quadrant = Coord(0,0)
     self.direction = pygame.math.Vector2(0,0)
-    if input_status!=None:
-      index_marker_pos = self.detector.index_marker_pos
-      self.quadrant = get_marker_quadrants(index_marker_pos)
-      self.show_camera(pygame_frame, index_marker_pos)
+    if input_status != None:
+      index_marker_pos = self.detector.hand_landmarks[8]
+      thumb_marker_pos = self.detector.hand_landmarks[4]
+      self.index_quadrant = get_marker_quadrants(index_marker_pos)
+      self.thumb_quadrant = get_marker_quadrants(thumb_marker_pos)
+      display_quadrants = [{'pos': index_marker_pos, 'color': 'blue'}]
       
       # movement input
       if 'move' in input_status and 'magic' not in input_status:
-        self.speed_addon = self.speed*hypot(self.quadrant.x, self.quadrant.y)*4    
-        self.direction = pygame.math.Vector2(self.quadrant.x, self.quadrant.y)
+        self.speed_addon = self.speed*hypot(self.index_quadrant.x, self.index_quadrant.y)*4    
+        self.direction = pygame.math.Vector2(self.index_quadrant.x, self.index_quadrant.y)
         if self.direction.magnitude() != 0:
           self.direction.normalize()
               
@@ -112,6 +114,9 @@ class Player(Entity):
         self.attack_time = pygame.time.get_ticks()
         self.create_attack()
         self.weapon_attack_sound.play()
+      
+      if 'attack' in input_status or self.attacking:
+        display_quadrants.append({'pos': thumb_marker_pos, 'color': 'red'})
     
       # magic input
       if 'magic' in input_status and not self.attacking:
@@ -121,6 +126,18 @@ class Player(Entity):
         strength = magic_data[self.magic]['strength'] + self.stats['magic']
         cost = magic_data[self.magic]['cost']
         self.create_magic(style, strength, cost)
+      
+      self.show_camera(pygame_frame, display_quadrants)
+      
+      # setting standing status status
+      if self.index_quadrant.x > 0:
+        self.status = 'right'
+      elif self.index_quadrant.x < 0:
+        self.status = 'left'
+      if self.index_quadrant.y > 0:
+        self.status = 'down'
+      elif self.index_quadrant.y < 0:
+        self.status = 'up'
 
     # weapon switch input
     if keys[pygame.K_q] and self.weapon_switch_timer.can_act():
@@ -159,20 +176,13 @@ class Player(Entity):
         self.create_tree(self.rect.bottomleft + pygame.math.Vector2(0, TILESIZE//2))
       
       self.inventory['tree'] -= 1
-
-    # setting status
-    if self.direction.x > 0:
-      self.status = 'right'
-    elif self.direction.x < 0:
-      self.status = 'left'
-    if self.direction.y > 0:
-      self.status = 'down'
-    elif self.direction.y < 0:
-      self.status = 'up'
       
-    # standing/attacking direction input
+    # attacking direction input
     if self.attacking:
-      self.status = get_direction_from_quadrant(self.quadrant) + '_attack'
+      if hypot(self.index_quadrant.x, self.index_quadrant.y) != 0:
+        self.status = get_direction_from_quadrant(self.index_quadrant) + '_attack'
+      else:
+        self.status = get_direction_from_quadrant(self.thumb_quadrant) + '_attack'
 
   def get_status(self):
     # idle status
@@ -263,39 +273,29 @@ class Player(Entity):
 
   def reduce_attack_power(self):
     if self.attacking:
-      self.attack_power -= 1/300
+      self.attack_power -= 1/200
     else:
       self.attack_power += 1/120
     
-    if self.attack_power <= 0.0:
+    if self.attack_power <= 0.005:
       self.attack_power = 0.005
     
     if self.attack_power >= 1:
       self.attack_power = 1
 
-  def show_camera(self, frame, marker_pos):
-    frame_width = frame.get_width()
-    
-    scale_factor = WIDTH/frame_width
+  def show_camera(self, frame, markers):
+    scale_factor = WIDTH/frame.get_width()
     img_surf = pygame.transform.scale_by(frame, scale_factor).convert_alpha()
     img_surf.set_alpha(50)
     img_rect = img_surf.get_rect()
     img_rect.center = (WIDTH/2, HEIGHT/2)
     
-    boundary_rect = pygame.Rect(0,0, BOUNDARY_LENGTH*img_surf.get_width(), BOUNDARY_LENGTH*img_surf.get_height())
-    boundary_rect.center = img_rect.center
-    
     display_surface = pygame.display.get_surface()
     display_surface.blit(img_surf, img_rect)
     
-    pygame.draw.rect(display_surface, "blue", boundary_rect, width=1)
-    
-    offset_x = WIDTH/2 - img_surf.get_width()/2
-    offset_y = HEIGHT/2 - img_surf.get_height()/2
-    scaled_marker_pos = Coord(0, 0)
-    scaled_marker_pos.x = marker_pos.x*frame.get_width()*scale_factor + offset_x
-    scaled_marker_pos.y = marker_pos.y*frame.get_height()*scale_factor + offset_y
-    pygame.draw.circle(display_surface, "red", (scaled_marker_pos.x, scaled_marker_pos.y), 5)
+    for marker in markers:
+      scaled_marker_pos = get_scaled_marker_pos(marker.get('pos', (0,0)), img_surf, frame, scale_factor)
+      pygame.draw.circle(display_surface, marker.get('color', 'green'), (scaled_marker_pos.x, scaled_marker_pos.y), 5)
 
   def update(self):
     self.input()

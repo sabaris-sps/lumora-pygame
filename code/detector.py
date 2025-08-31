@@ -1,5 +1,6 @@
 import pygame
 import mediapipe as mp
+from support import *
 
 class Detector:
   def __init__(self):
@@ -15,15 +16,19 @@ class Detector:
   
   def get_hand_status(self, frame, hand_id=-1):
     self.get_hand_marker(frame)
-    tip_ids = [8,12,16,20]
+    tip_ids = [8,12,16] # have not included pinky finger
     res_motions = []
     if self.hand_res.multi_hand_landmarks:
-      hand_landmarks = self.hand_res.multi_hand_landmarks[hand_id].landmark
+      self.hand_landmarks = self.hand_res.multi_hand_landmarks[hand_id].landmark
       
-      is_index_up = hand_landmarks[8].y <= hand_landmarks[7].y
-      is_four_up = all([hand_landmarks[tip_id].y <= hand_landmarks[tip_id - 1].y for tip_id in tip_ids])
-      mcp_wrist = pygame.math.Vector2(hand_landmarks[2].x - hand_landmarks[0].x, hand_landmarks[2].y - hand_landmarks[0].y)
-      tip_mcp = pygame.math.Vector2(hand_landmarks[4].x - hand_landmarks[2].x, hand_landmarks[4].y - hand_landmarks[2].y)
+      # is_index_up = self.hand_landmarks[8].y <= self.hand_landmarks[7].y
+      # is_four_up = all([self.hand_landmarks[tip_id].y <= self.hand_landmarks[tip_id - 1].y for tip_id in tip_ids])
+      is_index_up = get_dpc_angle(self.hand_landmarks, 8) <= 10
+      is_four_up = all([get_dpc_angle(self.hand_landmarks, tipid) <= 10 for tipid in tip_ids])
+      
+      # Checking if thumb is out
+      mcp_wrist = pygame.math.Vector2(self.hand_landmarks[2].x - self.hand_landmarks[0].x, self.hand_landmarks[2].y - self.hand_landmarks[0].y)
+      tip_mcp = pygame.math.Vector2(self.hand_landmarks[4].x - self.hand_landmarks[2].x, self.hand_landmarks[4].y - self.hand_landmarks[2].y)
       angle = pygame.math.Vector2.angle_to(tip_mcp, mcp_wrist)
       is_thumb_out = abs(angle) < 10.0 # For right hand
       
@@ -39,6 +44,7 @@ class Detector:
           res_motions.append('attack')
       return res_motions
     
+    self.hand_landmarks = None
     return None
   
   def get_hand_marker(self, frame, hand_id =-1):

@@ -113,3 +113,20 @@ def get_direction_from_quadrant(quadrant):
     else:
       status = 'up'
   return status
+
+def get_dpc_angle(hand_landmarks, tipid):
+  # DPC - dip, pip, mcp
+  pip_mcp = pygame.math.Vector2(hand_landmarks[tipid - 2].x-hand_landmarks[tipid - 3].x, hand_landmarks[tipid - 2].y-hand_landmarks[tipid - 3].y)
+  dip_pip = pygame.math.Vector2(hand_landmarks[tipid - 1].x-hand_landmarks[tipid - 2].x, hand_landmarks[tipid - 1].y-hand_landmarks[tipid - 2].y)
+  angle = pygame.math.Vector2.angle_to(dip_pip, pip_mcp)
+  return abs(angle)
+
+def get_scaled_marker_pos(marker_pos, img_surf, frame, scale_factor):
+  offset_x = WIDTH/2 - img_surf.get_width()/2
+  offset_y = HEIGHT/2 - img_surf.get_height()/2
+  
+  scaled_marker_pos = Coord(0, 0)
+  scaled_marker_pos.x = marker_pos.x*frame.get_width()*scale_factor + offset_x
+  scaled_marker_pos.y = marker_pos.y*frame.get_height()*scale_factor + offset_y
+  
+  return scaled_marker_pos
