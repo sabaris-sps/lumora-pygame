@@ -1,6 +1,7 @@
 import pygame,sys
 from settings import *
 from level import Level
+from support import *
 
 class Game:
   def __init__(self):
@@ -12,7 +13,7 @@ class Game:
     self.level = Level()
 
     # sound
-    main_sound = pygame.mixer.Sound('../audio/main.ogg')
+    main_sound = pygame.mixer.Sound(resource_path('audio/main.ogg'))
     main_sound.set_volume(0.2)
     main_sound.play(loops= -1)
 

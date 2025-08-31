@@ -45,8 +45,8 @@ class Enemy(Entity):
     self.invincibility_duration = 300
 
     # sounds
-    self.death_sound = pygame.mixer.Sound('../audio/death.wav')
-    self.hit_sound = pygame.mixer.Sound('../audio/hit.wav')
+    self.death_sound = pygame.mixer.Sound(resource_path('audio/death.wav'))
+    self.hit_sound = pygame.mixer.Sound(resource_path('audio/hit.wav'))
     self.attack_sound = pygame.mixer.Sound(monster_info['attack_sound'])
     self.death_sound.set_volume(0.6)
     self.hit_sound.set_volume(0.2)
@@ -57,7 +57,7 @@ class Enemy(Entity):
 
   def import_graphics(self, name):
     self.animations = {'idle': [], 'move': [], 'attack': []}
-    main_path = f'../graphics/monsters/{name}/'
+    main_path = resource_path(f'graphics/monsters/{name}/')
     for animation in self.animations.keys():
       self.animations[animation] = import_folder(main_path + animation)
 

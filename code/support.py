@@ -1,6 +1,6 @@
 import pygame
 from csv import reader
-from os import walk
+import os, sys
 from settings import *
 
 def import_csv_layout(path):
@@ -14,7 +14,7 @@ def import_csv_layout(path):
 def import_folder(path):
   surface_list = []
 
-  for _, __, img_files in walk(path):
+  for _, __, img_files in os.walk(path):
     for image in img_files:
       full_path = path + '/' + image
       image_surface = pygame.image.load(full_path).convert_alpha()
@@ -130,3 +130,11 @@ def get_scaled_marker_pos(marker_pos, img_surf, frame, scale_factor):
   scaled_marker_pos.y = marker_pos.y*frame.get_height()*scale_factor + offset_y
   
   return scaled_marker_pos
+
+def resource_path(rel_path):
+  try:
+    base_path = sys._MEIPASS
+  except AttributeError:
+    base_path = os.path.abspath('..')
+    
+  return os.path.join(base_path, rel_path)

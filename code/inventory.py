@@ -1,5 +1,6 @@
 import pygame
 from settings import *
+from support import *
 
 class Inventory_Bar:
   def __init__(self):
@@ -16,7 +17,7 @@ class Inventory_Bar:
   def show_object(self, object_id, value, index):
     # graphics
     if object_id < 10: object_id = f'0{object_id}'
-    object_image = pygame.image.load(f'../graphics/inventory-view/{object_id}.png').convert_alpha()
+    object_image = pygame.image.load(resource_path(f'graphics/inventory-view/{object_id}.png')).convert_alpha()
     x = index*self.box_size + self.left
     y = self.top
     object_rect = object_image.get_rect(topleft = (x,y)).inflate(-10,-10)
@@ -29,7 +30,7 @@ class Inventory_Bar:
     self.display_surface.blit(text_surf, text_rect)
   
   def show_grass(self, value, index):
-    grass_image = pygame.image.load(f'../graphics/grass/grass_1.png').convert_alpha()
+    grass_image = pygame.image.load(resource_path(f'graphics/grass/grass_1.png')).convert_alpha()
     x = index*self.box_size + self.left
     y = self.top
     grass_rect = grass_image.get_rect(topleft = (x,y)).inflate(-10,-10)

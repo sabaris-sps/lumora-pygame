@@ -59,14 +59,14 @@ class Level:
         
   def create_map(self):
     layouts = {
-      'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
-      'grass': import_csv_layout('../map/map_Grass.csv'),
-      'object': import_csv_layout('../map/map_Objects.csv'),
-      'entities': import_csv_layout('../map/map_Entities.csv')
+      'boundary': import_csv_layout(resource_path('map/map_FloorBlocks.csv')),
+      'grass': import_csv_layout(resource_path('map/map_Grass.csv')),
+      'object': import_csv_layout(resource_path('map/map_Objects.csv')),
+      'entities': import_csv_layout(resource_path('map/map_Entities.csv'))
     }
     self.graphics = {
-      'grass': import_folder('../graphics/Grass'),
-      'objects': import_folder('../graphics/Objects')
+      'grass': import_folder(resource_path('graphics/Grass')),
+      'objects': import_folder(resource_path('graphics/Objects'))
     }
     
     for style,layout in layouts.items():
@@ -162,7 +162,7 @@ class Level:
     self.animation_player.play_tree_cut(tree_surf, tree_rect, [self.visible_sprites])
 
   def create_tree(self, pos):
-    graphics = import_folder('../graphics/Objects')
+    graphics = import_folder(resource_path('graphics/Objects'))
     Tree(pos, [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'object', graphics[object_id['tree']], self.tree_death_action)
 
   def add_exp(self, amount):
@@ -223,7 +223,7 @@ class YSortCameraGroup(pygame.sprite.Group):
     self.offset = pygame.math.Vector2(100,300)
 
     # creating the floor
-    self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
+    self.floor_surf = pygame.image.load(resource_path('graphics/tilemap/ground.png')).convert()
     self.floor_rect = self.floor_surf.get_rect(topleft=(0,0))
 
   def custom_draw(self, player):
