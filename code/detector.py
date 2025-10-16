@@ -1,10 +1,10 @@
 import pygame
-import mediapipe as mp
+from mediapipe import solutions as mp
 from support import *
 
 class Detector:
   def __init__(self):
-    self.hands_mp = mp.solutions.hands
+    self.hands_mp = mp.hands
     self.hands = self.hands_mp.Hands()
     
   def get_marker_pos(self, frame):
