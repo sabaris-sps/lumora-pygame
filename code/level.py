@@ -15,6 +15,7 @@ from inventory import Inventory_Bar
 from detector import Detector
 import cv2
 from display_message import DisplayMessages
+from sqlconnector import SQL
 
 class Level:
   def __init__(self):
@@ -56,6 +57,12 @@ class Level:
     # display message
     self.display_messages = DisplayMessages()
     self.font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
+    
+    # sql setup
+    self.sql = SQL()
+    self.sql.create_table()
+    self.game_over_saved = False
+    self.prev_records = []
         
   def create_map(self):
     layouts = {
@@ -177,18 +184,37 @@ class Level:
       self.menu_open = menu
 
   def display_game_over(self):
+    # Database
+    if not self.game_over_saved:
+      self.prev_records = self.sql.get_records()
+      self.sql.add_score(self.player.exp)
+      self.game_over_saved = True
+      self.sql.close_conn() 
+      
+    # Blitting
     screen_surf = pygame.Surface((WIDTH, HEIGHT)).convert_alpha()
     screen_surf.set_alpha(200)
     screen_rect = screen_surf.get_rect()
     screen_rect.topleft = (0,0)
     
     text_surf = self.font.render("Player died. Game Over. Score: "+str(self.player.exp), False, TEXT_COLOR)
-    text_rect = text_surf.get_rect(center = (WIDTH//2, HEIGHT//2))
-    bg_rect = text_rect.copy()
+    text_rect = text_surf.get_rect(center = (WIDTH//2, HEIGHT//2-40))
+    
+    text = "Highest Score: "
+    
+    if self.prev_records:
+      max_exp = max([row[1] for row in self.prev_records])
+      if self.player.exp > max_exp:
+        text = "New Highest Score unlocked!"
+      else:
+        text += str(max_exp)
+        
+    details_surf = self.font.render(text, False, TEXT_COLOR)
+    details_rect = details_surf.get_rect(center = (WIDTH//2, HEIGHT//2))
     
     self.display_surface.blit(screen_surf, screen_rect)
-    # pygame.draw.rect(self.display_surface, UI_BG_COLOR, bg_rect)
     self.display_surface.blit(text_surf, text_rect)
+    self.display_surface.blit(details_surf, details_rect)
 
   def run(self):
     self.visible_sprites.custom_draw(self.player)

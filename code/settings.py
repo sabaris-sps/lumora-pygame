@@ -70,3 +70,11 @@ monster_data = {
     'raccoon': {'health': 300,'exp':250,'damage':15,'attack_type': 'claw',  'attack_sound':resource_path('audio/attack/claw.wav'),'speed': 2, 'resistance': 3, 'attack_radius': 120, 'notice_radius': 400},
     'spirit': {'health': 100,'exp':110,'damage':8,'attack_type': 'thunder', 'attack_sound':resource_path('audio/attack/fireball.wav'), 'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
     'bamboo': {'health': 70,'exp':120,'damage':6,'attack_type': 'leaf_attack', 'attack_sound':resource_path('audio/attack/slash.wav'), 'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300}}
+
+# SQL setup
+DB_CONFIG = {
+  'host': 'localhost',
+  'user': 'root',
+  'password': '0110',
+  'database': 'lumora_test'
+}
